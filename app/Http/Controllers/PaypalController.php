@@ -80,11 +80,10 @@ class PaypalController extends Controller
 
     public function paypalCheckout(Request $request)
     {
-        $paymentId = $request->input('paymentId');
-        $payerId = $request->input('PayerId');
-        $token = $request->input('token');
+        $paymentId = $request->paymentID;
+        $payerId = $request->payerID;
 
-        if (!$paymentId || !$payerId || !$token) {
+        if (!$paymentId || !$payerId) {
             $data = [
                 'status' => 'error',
                 'code' => 400,
