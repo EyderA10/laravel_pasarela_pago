@@ -19,5 +19,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 Route::get('/paymount/{stripeToken}', 'StripeController@methodPay');
+Route::get('/message-success', 'PaypalController@successUrl');
+Route::get('/message-cancel', 'PaypalController@cancelUrl');
 Route::post('/paypal/create-payment', 'PaypalController@createPaymount');
 Route::post('/paypal/checkout', 'PaypalController@paypalCheckout');

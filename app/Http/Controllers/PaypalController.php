@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Config;
 use Illuminate\Http\Request;
 use PayPal\Rest\ApiContext;
 use PayPal\Auth\OAuthTokenCredential;
@@ -20,7 +21,7 @@ class PaypalController extends Controller
 
     public function __construct()
     {
-        $paypalConfig = config('paypal');
+        $paypalConfig = Config::get('paypal');
 
         $this->apiContext = new ApiContext(
             new OAuthTokenCredential(
@@ -32,25 +33,34 @@ class PaypalController extends Controller
         $this->apiContext->setConfig($paypalConfig['settings']);
     }
 
+    public function successUrl() {
+        return 'el usuario ha pagado';
+    }
+
+    public function cancelUrl() {
+        return 'el usuario ha cancelado el pago';
+    }
+
     public function createPaymount()
     {
         $payer = new Payer();
         $payer->setPaymentMethod('paypal');
 
         $amount = new Amount();
-        $amount->setTotal(2.30)
+        $amount->setTotal(3.99)
             ->setCurrency('USD'); //tipo de moneda
 
         $transaction = new Transaction();
         $transaction->setAmount($amount)
-            ->setDescription('My first Payment with paypal');
-            // ->setInvoiceNumber(uniqid()); //numero de factura
+            ->setDescription('My first Payment with paypal')
+            ->setInvoiceNumber(uniqid()); //numero de factura
 
-        $url = url('/paypal/checkout');
+        $url1 = url('/message-success');
+        $url2 = url('/message-cancel');
 
         $redirectUrls = new RedirectUrls();
-        $redirectUrls->setReturnUrl($url) //nos dice si el usuario si ha pagado o no
-            ->setCancelUrl($url);
+        $redirectUrls->setReturnUrl($url1) //nos dice si el usuario si ha pagado o no
+            ->setCancelUrl($url2);
 
         $payment = new Payment();
         $payment->setIntent('sale') //setiar la intencion establecida en 'venta'
@@ -60,22 +70,11 @@ class PaypalController extends Controller
 
         try {
             $payment->create($this->apiContext);
-
-            $data = [
-                'status' => 'success',
-                'code' => 200,
-                'payment' => $payment
-            ];
-
         } catch (PayPalConnectionException $ex) {
-            $data = [
-                'status' => 'error',
-                'code' => 500,
-                'paypal_ex' => $ex->getData()
-            ];
+            $ex->getData();
         }
+        return $payment;
 
-        return response()->json($data, $data['code']);
     }
 
     public function paypalCheckout(Request $request)
@@ -84,11 +83,7 @@ class PaypalController extends Controller
         $payerId = $request->payerID;
 
         if (!$paymentId || !$payerId) {
-            $data = [
-                'status' => 'error',
-                'code' => 400,
-                'message' => 'Lo sentimos, el pago con paypal no se pudo realizar'
-            ];
+            return 'Lo sentimos, el pago con paypal no se pudo realizar';
         }
 
         $payment = Payment::get($paymentId, $this->apiContext);
@@ -100,27 +95,14 @@ class PaypalController extends Controller
             $result = $payment->execute($execution, $this->apiContext);
 
             if ($result->getState() === 'approved') {
-                $data = [
-                    'status' => 'success',
-                    'code' => 200,
-                    'message' => 'Gracias, el pago con paypal ha sido exitoso!',
-                    'result' => $result
-                ];
+                return 'Gracias, el pago con paypal ha sido exitoso!';
             }
 
-            $data = [
-                'status' => 'error',
-                'code' => 400,
-                'message' => 'Lo sentimos, el pago con paypal no se pudo realizar'
-            ];
+            return 'Lo sentimos, el pago con paypal no se pudo realizar';
         } catch (PayPalConnectionException $ex) {
-            $data = [
-                'status' => 'error',
-                'code' => 500,
-                'paypal_ex' => $ex->getData()
-            ];
+            return $ex->getData();
         }
 
-        return response()->json($data, $data['code']);
+        return $result;
     }
 }

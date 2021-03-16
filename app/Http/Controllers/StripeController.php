@@ -16,18 +16,12 @@ class StripeController extends Controller
         $token = $request->stripeToken;
 
         $charge = Charge::create([
-            'amount' => 10,
+            'amount' => 100,
             'currency' => 'usd',
             'description' => 'my Paymount charge',
             'source' => $token,
         ]);
 
-        $data = [
-            'status' => 'success',
-            'code' => 200,
-            'paymount' => $charge
-        ];
-
-        return response()->json($data, $data['code']);
+        return $charge;
     }
 }
