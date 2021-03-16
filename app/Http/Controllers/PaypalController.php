@@ -2,17 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Http\Request;
 use PayPal\Rest\ApiContext;
 use PayPal\Auth\OAuthTokenCredential;
 use PayPal\Api\Payer;
 use PayPal\Api\Amount;
+use PayPal\Api\Details;
+use PayPal\Api\Item;
+use PayPal\Api\ItemList;
 use PayPal\Api\Payment;
 use PayPal\Api\Transaction;
 use PayPal\Api\RedirectUrls;
 use PayPal\Api\PaymentExecution;
-use PayPal\Exception\PayPalConnectionException;
+// use PayPal\Exception\PayPalConnectionException;
 
 class PaypalController extends Controller
 {
@@ -33,48 +37,57 @@ class PaypalController extends Controller
         $this->apiContext->setConfig($paypalConfig['settings']);
     }
 
-    public function successUrl() {
-        return 'el usuario ha pagado';
-    }
-
-    public function cancelUrl() {
-        return 'el usuario ha cancelado el pago';
-    }
-
     public function createPaymount()
     {
         $payer = new Payer();
         $payer->setPaymentMethod('paypal');
 
+        $item = new Item();
+        $item->setName('Ground Coffee 40 oz')
+            ->setCurrency('USD')
+            ->setQuantity(2)
+            ->setSku("123123") // Similar to `item_number` in Classic API
+            ->setPrice(2.30);
+
+        $itemList = new ItemList();
+        $itemList->setItems(array($item));
+
+        $details = new Details();
+        $details->setShipping(2.2)
+            ->setTax(1.3)
+            ->setSubtotal(4.6); //total de items
+
         $amount = new Amount();
-        $amount->setTotal(3.99)
-            ->setCurrency('USD'); //tipo de moneda
+        $amount->setTotal(8.1)
+            ->setCurrency('USD') //tipo de moneda
+            ->setDetails($details);
 
         $transaction = new Transaction();
         $transaction->setAmount($amount)
+            ->setItemList($itemList)
             ->setDescription('My first Payment with paypal')
             ->setInvoiceNumber(uniqid()); //numero de factura
 
-        $url1 = url('/message-success');
-        $url2 = url('/message-cancel');
+        $url = url('/paypal/execute-payment');
 
         $redirectUrls = new RedirectUrls();
-        $redirectUrls->setReturnUrl($url1) //nos dice si el usuario si ha pagado o no
-            ->setCancelUrl($url2);
+        $redirectUrls->setReturnUrl($url) //nos dice si el usuario si ha pagado o no
+            ->setCancelUrl($url);
 
         $payment = new Payment();
-        $payment->setIntent('sale') //setiar la intencion establecida en 'venta'
+        $payment->setIntent('Sale') //setiar la intencion establecida en 'venta'
             ->setPayer($payer) //metodo de pago
-            ->setTransactions(array($transaction)) //transacciones
-            ->setRedirectUrls($redirectUrls); //redirecciones
+            ->setRedirectUrls($redirectUrls) //redirecciones
+            ->setTransactions(array($transaction)); //transacciones
 
         try {
             $payment->create($this->apiContext);
-        } catch (PayPalConnectionException $ex) {
-            $ex->getData();
+        } catch (Exception $ex) {
+            echo $ex;
+            exit(1);
         }
-        return $payment;
 
+        return $payment;
     }
 
     public function paypalCheckout(Request $request)
@@ -91,18 +104,32 @@ class PaypalController extends Controller
         $execution = new PaymentExecution();
         $execution->setPayerId($payerId);
 
+        $transaction = new Transaction();
+        $amount = new Amount();
+        $details = new Details();
+
+        $details->setShipping(2.2) //establece envio
+            ->setTax(1.3) //establece impuestos
+            ->setSubtotal(4.6);
+
+        $amount->setCurrency('USD');
+        $amount->setTotal(8.1);
+        $amount->setDetails($details);
+        $transaction->setAmount($amount);
+
+        $execution->addTransaction($transaction);
+
         try {
             $result = $payment->execute($execution, $this->apiContext);
 
             if ($result->getState() === 'approved') {
-                return 'Gracias, el pago con paypal ha sido exitoso!';
+                return $result;
+            } else {
+                return 'Lo sentimos, el pago con paypal no se pudo realizar';
             }
-
-            return 'Lo sentimos, el pago con paypal no se pudo realizar';
-        } catch (PayPalConnectionException $ex) {
-            return $ex->getData();
+        } catch (Exception $ex) {
+            echo $ex;
+            exit(1);
         }
-        return $result;
-
     }
 }

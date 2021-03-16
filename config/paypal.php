@@ -6,6 +6,7 @@ return [
 
     'settings' => [
         'mode' => env('PAYPAL_MODE', 'sandbox'),
+        'http.ConnectionTimeOut' => 30,
         'log.LogEnabled' => true,
         //en el caso de que ocurran errores los guarde en este path
         'log.FileName' => storage_path('/logs/paypal.log'),
