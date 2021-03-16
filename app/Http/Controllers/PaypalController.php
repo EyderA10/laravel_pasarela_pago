@@ -102,7 +102,7 @@ class PaypalController extends Controller
         } catch (PayPalConnectionException $ex) {
             return $ex->getData();
         }
-
         return $result;
+
     }
 }
