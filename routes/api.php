@@ -19,5 +19,5 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 Route::get('/paymount/{stripeToken}', 'StripeController@methodPay');
-Route::post('/paypal/create-payment', 'PaypalController@createPaymount');
-Route::post('/paypal/execute-payment', 'PaypalController@paypalCheckout');
+Route::get('/paypal/create-payment', 'PaypalController@createPaymount');
+Route::get('/paypal/execute-payment', 'PaypalController@paypalCheckout');

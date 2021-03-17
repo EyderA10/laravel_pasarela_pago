@@ -45,7 +45,7 @@ class PaypalController extends Controller
         $item = new Item();
         $item->setName('Ground Coffee 40 oz')
             ->setCurrency('USD')
-            ->setQuantity(2)
+            ->setQuantity(3)
             ->setSku("123123") // Similar to `item_number` in Classic API
             ->setPrice(2.30);
 
@@ -55,10 +55,10 @@ class PaypalController extends Controller
         $details = new Details();
         $details->setShipping(2.2)
             ->setTax(1.3)
-            ->setSubtotal(4.6); //total de items
+            ->setSubtotal(6.9); //total de items
 
         $amount = new Amount();
-        $amount->setTotal(8.1)
+        $amount->setTotal(10.4)
             ->setCurrency('USD') //tipo de moneda
             ->setDetails($details);
 
@@ -92,10 +92,11 @@ class PaypalController extends Controller
 
     public function paypalCheckout(Request $request)
     {
-        $paymentId = $request->paymentID;
-        $payerId = $request->payerID;
+        $paymentId = $request->paymentId;
+        $payerId = $request->PayerID;
+        $token = $request->token;
 
-        if (!$paymentId || !$payerId) {
+        if (!$paymentId || !$payerId || !$token) {
             return 'Lo sentimos, el pago con paypal no se pudo realizar';
         }
 
@@ -110,10 +111,10 @@ class PaypalController extends Controller
 
         $details->setShipping(2.2) //establece envio
             ->setTax(1.3) //establece impuestos
-            ->setSubtotal(4.6);
+            ->setSubtotal(6.9);
 
         $amount->setCurrency('USD');
-        $amount->setTotal(8.1);
+        $amount->setTotal(10.4);
         $amount->setDetails($details);
         $transaction->setAmount($amount);
 
