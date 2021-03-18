@@ -18,11 +18,16 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+
 //pasarela de pago
 Route::get('/paymount/{stripeToken}', 'StripeController@methodPay');
 Route::get('/paypal/create-payment', 'PaypalController@createPaymount');
 Route::get('/paypal/execute-payment', 'PaypalController@paypalCheckout');
 
 //socialite with google and facebook
-Route::get('/google/redirect','SocialiteController@redirectToProvider');
-Route::get('/google/callback','SocialiteController@redirectToProvider');
+Route::get('/login/{service}/redirect','SocialiteController@redirectToProvider');
+Route::get('/login/{service}/callback','SocialiteController@handleProviderCallback');
+
+//auth with jwtw
+Route::post('/sign-up', 'UserController@signUp');
+Route::post('/sign-in', 'UserController@signIn');
