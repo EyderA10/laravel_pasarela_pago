@@ -82,7 +82,7 @@ class PaypalController extends Controller
 
         try {
             $payment->create($this->apiContext);
-        } catch (Exception $ex) {
+        } catch (\Exception $ex) {
             echo $ex;
             exit(1);
         }
@@ -128,7 +128,7 @@ class PaypalController extends Controller
             } else {
                 return 'Lo sentimos, el pago con paypal no se pudo realizar';
             }
-        } catch (Exception $ex) {
+        } catch (\Exception $ex) {
             echo $ex;
             exit(1);
         }
