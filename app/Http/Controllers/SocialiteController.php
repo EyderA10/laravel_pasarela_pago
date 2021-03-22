@@ -25,7 +25,9 @@ class SocialiteController extends Controller
             return response()->json($data, $data['code']);
         }
 
-        return Socialite::driver($service)->stateless()->redirect();
+        $redirect_url =  Socialite::driver($service)->stateless()->redirect()->getTargetUrl();
+
+        return response()->json(['redirect_url' => $redirect_url]);
     }
 
     //me retorna los datos del usuario
