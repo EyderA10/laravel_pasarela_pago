@@ -3,64 +3,28 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Socialite;
 use App\Models\User;
 use App\Models\UserSocial;
 
 class SocialiteController extends Controller
 {
-    //muestra la pagina de autenticacion con google
 
-    public function redirectToProvider(Request $request)
-    {
-        $service = $request->service;
-
-        if($service === 'github' || $service === 'twitter') {
-            $data = [
-                'status' => 'failed',
-                'code' => 400,
-                'message' => 'Error no puedes acceder a este servicio'
-            ];
-
-            return response()->json($data, $data['code']);
-        }
-
-        $redirect_url =  Socialite::driver($service)->stateless()->redirect()->getTargetUrl();
-
-        return response()->json(['redirect_url' => $redirect_url]);
-    }
-
-    //me retorna los datos del usuario
-
-    public function handleProviderCallback(Request $request)
+    public function returnUserData(Request $request)
     {
 
-        $service = $request->service;
-
-        try {
-
-            $serviceUser = Socialite::driver($service)->stateless()->user();
-
-        } catch (\Exception $e) {
-            $data = [
-                'status' => 'failed',
-                'code' => 500,
-                'error' => 'Error al intentar iniciar sesion con' . ' ' . $service . ' ' . 'por favor intenta de nuevo' 
-            ];
-    
-            return response()->json($data, $data['code']);
-        }
-
+        $email = $request->input('email');
+        $name = $request->input('name');
+        $service = $request->input('service');
+        $service_id = $request->input('serviceId');
+        
         //se encarga de decirme si un usuario existe en la base de datos
-        $email = $serviceUser->getEmail();
-
-        $user = $this->getExistingUser($serviceUser, $email, $service);
+        $user = $this->getExistingUser($service_id, $email, $service);
 
         //si no existe me crea el usuario
         if (!$user) {
             //y me retorna este user
             $user = User::create([
-                'name' => $serviceUser->getName(),
+                'name' => $name,
                 'email' => $email,
                 'password' => ''
             ]);
@@ -70,26 +34,22 @@ class SocialiteController extends Controller
         if ($this->needsToCreateSocial($user, $service)) {
             UserSocial::create([
                 'user_id' => $user->id,
-                'social_id' => $serviceUser->getId(),
+                'social_id' => $service_id,
                 'service' => $service
             ]);
         }
 
-        //al final retorno el token que me devuelve servicio y el usuario
+        //al final retorno usuario ya sea el creado o el que ya existe
         $data = [
             'status' => 'success',
             'code' => 201,
-            'data' => $user,
-            'token' => $serviceUser->token, 
-            'refreshToken' => $serviceUser->refreshToken, 
-            'expiresIn' => $serviceUser->expiresIn,
-            'avatar' => $serviceUser->getAvatar() 
+            'data' => $user
         ];
 
         return response()->json($data, $data['code']);
     }
 
-    //se encargar de hacer una query si el usuario posee una cuenta social o no
+    //se encarga de hacer una query si el usuario posee una cuenta social o no
     //retorna bool
     public function needsToCreateSocial(User $user, $service)
     {
@@ -97,11 +57,11 @@ class SocialiteController extends Controller
     }
 
     //me retorna el usuario con el servicio por el cual se logueo o registro de manera dinamica
-    public function getExistingUser($serviceUser, $email, $service)
+    public function getExistingUser($service_id, $email, $service)
     {
         //orWhereHas: busca dentro de una relacion de eloquent
-        return User::where('email', $email)->orWhereHas('social', function ($q) use ($serviceUser, $service) {
-            $q->where('social_id', $serviceUser->getId())->where('service', $service);
+        return User::where('email', $email)->orWhereHas('social', function ($q) use ($service_id, $service) {
+            $q->where('social_id', $service_id)->where('service', $service);
         })->first();
     }
 }

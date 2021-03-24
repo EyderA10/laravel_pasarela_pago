@@ -24,9 +24,8 @@ Route::get('/paymount/{stripeToken}', 'StripeController@methodPay');
 Route::get('/paypal/create-payment', 'PaypalController@createPaymount');
 Route::get('/paypal/execute-payment', 'PaypalController@paypalCheckout');
 
-//socialite with google and facebook
-Route::get('/login/{service}/redirect','SocialiteController@redirectToProvider');
-Route::get('/login/{service}/callback','SocialiteController@handleProviderCallback');
+
+Route::post('/get-user-social','SocialiteController@returnUserData');
 
 //auth with jwtw
 Route::post('/sign-up', 'UserController@signUp');
