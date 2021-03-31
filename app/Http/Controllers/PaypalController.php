@@ -37,34 +37,20 @@ class PaypalController extends Controller
         $this->apiContext->setConfig($paypalConfig['settings']);
     }
 
-    public function createPaymount()
+    public function createPaymount(Request $request)
     {
+
+        $total = $request->amount;
+
         $payer = new Payer();
         $payer->setPaymentMethod('paypal');
 
-        $item = new Item();
-        $item->setName('Ground Coffee 40 oz')
-            ->setCurrency('USD')
-            ->setQuantity(3)
-            ->setSku("123123") // Similar to `item_number` in Classic API
-            ->setPrice(2.30);
-
-        $itemList = new ItemList();
-        $itemList->setItems(array($item));
-
-        $details = new Details();
-        $details->setShipping(2.2)
-            ->setTax(1.3)
-            ->setSubtotal(6.9); //total de items
-
         $amount = new Amount();
-        $amount->setTotal(10.4)
-            ->setCurrency('USD') //tipo de moneda
-            ->setDetails($details);
+        $amount->setTotal($total)
+            ->setCurrency('USD'); //tipo de moneda
 
         $transaction = new Transaction();
         $transaction->setAmount($amount)
-            ->setItemList($itemList)
             ->setDescription('My first Payment with paypal')
             ->setInvoiceNumber(uniqid()); //numero de factura
 
@@ -92,6 +78,7 @@ class PaypalController extends Controller
 
     public function paypalCheckout(Request $request)
     {
+        $total = $request->total;
         $paymentId = $request->paymentId;
         $payerId = $request->PayerID;
         $token = $request->token;
@@ -107,15 +94,9 @@ class PaypalController extends Controller
 
         $transaction = new Transaction();
         $amount = new Amount();
-        $details = new Details();
-
-        $details->setShipping(2.2) //establece envio
-            ->setTax(1.3) //establece impuestos
-            ->setSubtotal(6.9);
 
         $amount->setCurrency('USD');
-        $amount->setTotal(10.4);
-        $amount->setDetails($details);
+        $amount->setTotal($total);
         $transaction->setAmount($amount);
 
         $execution->addTransaction($transaction);

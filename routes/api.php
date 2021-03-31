@@ -20,8 +20,8 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 
 //pasarela de pago
-Route::get('/paymount/{stripeToken}', 'StripeController@methodPay');
-Route::get('/paypal/create-payment', 'PaypalController@createPaymount');
+Route::get('/paymount/{amount}/{stripeToken}', 'StripeController@methodPay');
+Route::get('/paypal/create-payment/{amount}', 'PaypalController@createPaymount');
 Route::get('/paypal/execute-payment', 'PaypalController@paypalCheckout');
 
 
@@ -30,3 +30,6 @@ Route::post('/get-user-social','SocialiteController@returnUserData');
 //auth with jwtw
 Route::post('/sign-up', 'UserController@signUp');
 Route::post('/sign-in', 'UserController@signIn');
+
+//orden
+Route::post('/orden', 'OrdenController@saveOrdenByUser');
