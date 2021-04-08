@@ -16,7 +16,6 @@ class OrdenController extends Controller
             foreach ($tienda['productos'] as $producto) {
                 $orden = Ordene::create([
                     'tienda_id' => $tienda['tienda_id'],
-                    'user_id' => $tienda['user_id'],
                     'state' => 'pending',
                     'lat' => $producto['lat'],
                     'lon' => $producto['lon'],
