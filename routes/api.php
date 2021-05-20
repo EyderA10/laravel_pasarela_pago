@@ -18,6 +18,22 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+//user(view profile)
+Route::post('/registro','UserController@registro');
+Route::get('/my-profile/{id}', 'UserController@profile');
+Route::put('/update-user/{id}','UserController@update');
+Route::post('/upload-avatar','UserController@uploadFile');
+Route::get('/my-avatar/{image}', 'UserController@getFile');
+
+//other views
+Route::get('/preguntas', 'CustomController@getPreguntas');
+Route::get('/condiciones', 'CustomController@getCondiciones');
+Route::post('/comunicate', 'CustomController@saveComunicate');
+Route::get('/nosotros', 'CustomController@getNosotros');
+Route::get('/protagonistas', 'CustomController@getProtagonistas');
+Route::get('/testimonios', 'CustomController@getTestimonios');
+
+
 
 //pasarela de pago
 Route::get('/paymount/{amount}/{stripeToken}', 'StripeController@methodPay');
@@ -35,3 +51,6 @@ Route::post('/sign-in', 'UserController@signIn');
 
 //orden
 Route::post('/orden', 'OrdenController@saveOrdenByUser');
+
+//tasa de cambio
+Route::get('/tasa-cambio', 'TasaCambioController@getTasaCambioMonedas');

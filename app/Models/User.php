@@ -16,7 +16,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password',
+        'name', 'last_name', 'num_telf', 'email', 'password',
     ];
 
     /**
@@ -36,14 +36,4 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
-
-    public function social()
-    {
-        return $this->hasMany(UserSocial::class, 'user_id', 'id');
-    }
-
-    public function hasSocialLinked($service)
-    {
-        return (bool) $this->social->where('service', $service)->count();
-    }
 }

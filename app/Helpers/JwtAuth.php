@@ -32,6 +32,8 @@ class JwtAuth {
                 'sub' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
+                'last_name' => $user->last_name,
+                'num_telf' => $user->num_telf,
                 'avatar' => $user->avatar,
                 'iat' => time(),
                 'exp' => time() . 7200
